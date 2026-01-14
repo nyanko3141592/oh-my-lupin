@@ -195,7 +195,7 @@ fn main() -> Result<()> {
             let text: String;
 
             if i < chars.len() - 1 {
-                text = chars[i..=i].iter().collect();
+                text = chars[i].to_string();
             } else {
                 text = chars.iter().collect();
             }
