@@ -65,22 +65,24 @@ impl FontToDots {
         let margin = font_size as f32 / 5.0;
 
         let mut total_width = 0.0f32;
-        let mut max_height: f32 = 0.0;
+        let mut min_y = f32::MAX;
+        let mut max_y = f32::MIN;
 
         for c in text.chars() {
             let glyph = scaled_font.scaled_glyph(c);
-            let glyph_id = glyph.id;
-            if let Some(outlined) = scaled_font.outline_glyph(glyph) {
+            if let Some(outlined) = scaled_font.outline_glyph(glyph.clone()) {
                 let bounds = outlined.px_bounds();
                 total_width += bounds.width();
-                max_height = max_height.max(bounds.height());
+                min_y = min_y.min(bounds.min.y);
+                max_y = max_y.max(bounds.max.y);
             } else {
+                let glyph_id = glyph.id;
                 total_width += scaled_font.h_advance(glyph_id);
             }
         }
 
         let img_width = (total_width + margin * 2.0).ceil() as u32;
-        let img_height = (max_height + margin * 2.0).ceil() as u32;
+        let img_height = ((max_y - min_y) + margin * 2.0).ceil() as u32;
 
         let mut img = GrayImage::new(img_width, img_height);
 
@@ -94,11 +96,11 @@ impl FontToDots {
             if let Some(outlined) = scaled_font.outline_glyph(glyph) {
                 let bounds = outlined.px_bounds();
                 let offset_x = (x_offset + bounds.min.x).floor() as i32;
-                let offset_y = (margin).floor() as i32;
+                let offset_y = (margin + min_y - bounds.min.y).floor() as i32;
 
                 let mut coverage_grid = vec![vec![0u8; img_width as usize]; img_height as usize];
 
-                outlined.draw(|x, y, intensity| {
+                outlined.draw(|x: u32, y: u32, intensity: f32| {
                     let px = x as i32 + offset_x;
                     let py = y as i32 + offset_y;
                     if px >= 0 && py >= 0 {
