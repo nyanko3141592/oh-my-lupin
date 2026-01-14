@@ -190,15 +190,12 @@ fn main() -> Result<()> {
 
     if !cli.no_animate {
         let chars: Vec<char> = cli.text.chars().collect();
+        let total_chars = chars.len();
 
-        for i in 0..chars.len() {
+        for i in 0..total_chars {
             let text: String;
 
-            if i < chars.len() - 1 {
-                text = chars[i].to_string();
-            } else {
-                text = chars.iter().collect();
-            }
+            text = chars[i].to_string();
 
             let dots =
                 FontToDots::text_to_dots(&cli.font_path, &text, cli.font_size, cli.threshold)?;
@@ -206,10 +203,17 @@ fn main() -> Result<()> {
             clear_screen();
             FontToDots::print_dots(&dots);
 
-            if i < chars.len() - 1 {
+            if i < total_chars - 1 {
                 thread::sleep(Duration::from_millis(cli.delay));
             }
         }
+
+        let full_text: String = chars.iter().collect();
+        let dots =
+            FontToDots::text_to_dots(&cli.font_path, &full_text, cli.font_size, cli.threshold)?;
+
+        clear_screen();
+        FontToDots::print_dots(&dots);
     } else {
         let dots =
             FontToDots::text_to_dots(&cli.font_path, &cli.text, cli.font_size, cli.threshold)?;
