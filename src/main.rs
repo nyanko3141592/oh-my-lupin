@@ -4,6 +4,8 @@ use clap::Parser;
 use image::{GrayImage, Luma};
 use std::fs;
 use std::path::Path;
+use std::thread;
+use std::time::Duration;
 
 #[derive(Parser)]
 #[command(name = "oh-my-lupin")]
@@ -25,6 +27,17 @@ struct Cli {
         help = "Threshold for dot rendering (0-255, default: 128)"
     )]
     threshold: u8,
+
+    #[arg(long, help = "Disable animation")]
+    no_animate: bool,
+
+    #[arg(
+        short,
+        long,
+        default_value = "200",
+        help = "Animation delay in milliseconds (default: 200)"
+    )]
+    delay: u64,
 }
 
 struct FontToDots;
@@ -175,8 +188,35 @@ impl FontToDots {
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
-    let dots = FontToDots::text_to_dots(&cli.font_path, &cli.text, cli.font_size, cli.threshold)?;
-    FontToDots::print_dots(&dots);
+    if !cli.no_animate {
+        let chars: Vec<char> = cli.text.chars().collect();
+
+        for i in 1..=chars.len() {
+            let partial_text: String = chars[0..i].iter().collect();
+
+            let dots = FontToDots::text_to_dots(
+                &cli.font_path,
+                &partial_text,
+                cli.font_size,
+                cli.threshold,
+            )?;
+
+            clear_screen();
+            FontToDots::print_dots(&dots);
+
+            if i < chars.len() {
+                thread::sleep(Duration::from_millis(cli.delay));
+            }
+        }
+    } else {
+        let dots =
+            FontToDots::text_to_dots(&cli.font_path, &cli.text, cli.font_size, cli.threshold)?;
+        FontToDots::print_dots(&dots);
+    }
 
     Ok(())
+}
+
+fn clear_screen() {
+    print!("\x1B[2J\x1B[1;1H");
 }
