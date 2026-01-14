@@ -203,9 +203,7 @@ fn main() -> Result<()> {
             clear_screen();
             FontToDots::print_dots(&dots);
 
-            if i < total_chars - 1 {
-                thread::sleep(Duration::from_millis(cli.delay));
-            }
+            thread::sleep(Duration::from_millis(cli.delay));
         }
 
         let full_text: String = chars.iter().collect();
