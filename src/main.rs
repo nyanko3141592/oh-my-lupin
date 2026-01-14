@@ -63,26 +63,28 @@ impl FontToDots {
         let scaled_font = font.as_scaled(scale);
 
         let margin = font_size as f32 / 5.0;
+        let letter_spacing = font_size as f32 * 0.05;
+
+        // Use font metrics for consistent baseline across all characters
+        let ascent = scaled_font.ascent();
+        let descent = scaled_font.descent();
+        let line_height = ascent - descent;
 
         let mut total_width = 0.0f32;
-        let mut min_y = f32::MAX;
-        let mut max_y = f32::MIN;
 
         for c in text.chars() {
             let glyph = scaled_font.scaled_glyph(c);
-            if let Some(outlined) = scaled_font.outline_glyph(glyph.clone()) {
+            if let Some(outlined) = scaled_font.outline_glyph(glyph) {
                 let bounds = outlined.px_bounds();
-                total_width += bounds.width();
-                min_y = min_y.min(bounds.min.y);
-                max_y = max_y.max(bounds.max.y);
+                total_width += bounds.width() + letter_spacing;
             } else {
-                let glyph_id = glyph.id;
+                let glyph_id = scaled_font.scaled_glyph(c).id;
                 total_width += scaled_font.h_advance(glyph_id);
             }
         }
 
         let img_width = (total_width + margin * 2.0).ceil() as u32;
-        let img_height = ((max_y - min_y) + margin * 2.0).ceil() as u32;
+        let img_height = (line_height + margin * 2.0).ceil() as u32;
 
         let mut img = GrayImage::new(img_width, img_height);
 
@@ -91,12 +93,13 @@ impl FontToDots {
         }
 
         let mut x_offset = margin;
+        let baseline_y = margin + ascent;
         for c in text.chars() {
             let glyph = scaled_font.scaled_glyph(c);
             if let Some(outlined) = scaled_font.outline_glyph(glyph) {
                 let bounds = outlined.px_bounds();
-                let offset_x = (x_offset + bounds.min.x).floor() as i32;
-                let offset_y = (margin + min_y - bounds.min.y).floor() as i32;
+                let offset_x = (x_offset).floor() as i32;
+                let offset_y = (baseline_y + bounds.min.y).floor() as i32;
 
                 let mut coverage_grid = vec![vec![0u8; img_width as usize]; img_height as usize];
 
@@ -127,7 +130,7 @@ impl FontToDots {
                     }
                 }
 
-                x_offset += bounds.width();
+                x_offset += bounds.width() + letter_spacing;
             }
         }
 
