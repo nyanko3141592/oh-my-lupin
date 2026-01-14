@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2021"
 description = "Convert text to braille art using any font"
 license = "MIT"
+repository = "https://github.com/nyanko3141592/oh-my-lupin"
+keywords = ["braille", "ascii-art", "font", "cli"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
