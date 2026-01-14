@@ -6,7 +6,7 @@ use std::fs;
 use std::path::Path;
 
 #[derive(Parser)]
-#[command(name = "font2dots")]
+#[command(name = "oh-my-lupin")]
 #[command(about = "Convert text to braille using any font", long_about = None)]
 struct Cli {
     #[arg(help = "Path to font file (TTF/OTF)")]
@@ -56,10 +56,13 @@ impl FontToDots {
 
         for c in text.chars() {
             let glyph = scaled_font.scaled_glyph(c);
+            let glyph_id = glyph.id;
             if let Some(outlined) = scaled_font.outline_glyph(glyph) {
                 let bounds = outlined.px_bounds();
                 total_width += bounds.width();
                 max_height = max_height.max(bounds.height());
+            } else {
+                total_width += scaled_font.h_advance(glyph_id);
             }
         }
 

@@ -1,5 +1,5 @@
 [package]
-name = "font2dots"
+name = "oh-my-lupin"
 version = "0.1.0"
 edition = "2021"
 description = "Convert text to braille using any font"
