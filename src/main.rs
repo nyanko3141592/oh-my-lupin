@@ -7,18 +7,25 @@ use std::path::Path;
 use std::thread;
 use std::time::Duration;
 
+#[cfg(target_os = "macos")]
+const DEFAULT_FONT: &str = "/System/Library/Fonts/Helvetica.ttc";
+#[cfg(target_os = "linux")]
+const DEFAULT_FONT: &str = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf";
+#[cfg(target_os = "windows")]
+const DEFAULT_FONT: &str = "C:\\Windows\\Fonts\\arial.ttf";
+
 #[derive(Parser)]
 #[command(name = "oh-my-lupin")]
 #[command(about = "Convert text to braille using any font", long_about = None)]
 struct Cli {
-    #[arg(help = "Path to font file (TTF/OTF)")]
-    font_path: String,
-
     #[arg(help = "Text to display")]
     text: String,
 
-    #[arg(help = "Font size in pixels")]
+    #[arg(help = "Font size in pixels", default_value = "50")]
     font_size: u32,
+
+    #[arg(short, long, help = "Path to font file (TTF/OTF)")]
+    font: Option<String>,
 
     #[arg(
         short,
@@ -192,18 +199,17 @@ impl FontToDots {
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
+    let font_path = cli.font.as_deref().unwrap_or(DEFAULT_FONT);
 
     if !cli.no_animate {
         let chars: Vec<char> = cli.text.chars().collect();
         let total_chars = chars.len();
 
         for i in 0..total_chars {
-            let text: String;
-
-            text = chars[i].to_string();
+            let text = chars[i].to_string();
 
             let dots =
-                FontToDots::text_to_dots(&cli.font_path, &text, cli.font_size, cli.threshold)?;
+                FontToDots::text_to_dots(font_path, &text, cli.font_size, cli.threshold)?;
 
             clear_screen();
             FontToDots::print_dots(&dots);
@@ -213,13 +219,13 @@ fn main() -> Result<()> {
 
         let full_text: String = chars.iter().collect();
         let dots =
-            FontToDots::text_to_dots(&cli.font_path, &full_text, cli.font_size, cli.threshold)?;
+            FontToDots::text_to_dots(font_path, &full_text, cli.font_size, cli.threshold)?;
 
         clear_screen();
         FontToDots::print_dots(&dots);
     } else {
         let dots =
-            FontToDots::text_to_dots(&cli.font_path, &cli.text, cli.font_size, cli.threshold)?;
+            FontToDots::text_to_dots(font_path, &cli.text, cli.font_size, cli.threshold)?;
         FontToDots::print_dots(&dots);
     }
 
