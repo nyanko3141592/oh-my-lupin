@@ -138,6 +138,10 @@ impl FontToDots {
                 }
 
                 x_offset += bounds.width() + letter_spacing;
+            } else {
+                // Handle space and other characters without outlines
+                let glyph_id = scaled_font.scaled_glyph(c).id;
+                x_offset += scaled_font.h_advance(glyph_id);
             }
         }
 
