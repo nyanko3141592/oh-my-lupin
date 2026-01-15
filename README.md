@@ -16,7 +16,7 @@ Convert text to braille art using any font.
 ## Installation
 
 ```bash
-cargo install --path .
+cargo install oh-my-lupin
 ```
 
 ## Usage
