@@ -1,6 +1,6 @@
 [package]
 name = "oh-my-lupin"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Convert text to braille art using any font"
 license = "MIT"
